@@ -1,5 +1,5 @@
 #include <cstdint>
-
+#include <random>
 
 const unsigned int MEMORY_SIZE = 4096;
 const unsigned int REGISTER_COUNT = 16;
@@ -24,4 +24,7 @@ class Chip8 {
         uint16_t stack[STACK_LEVELS]{};
         uint8_t sp{};
         uint16_t opcode{};
+
+        std::default_random_engine randGen;
+        std::uniform_int_distribution<uint8_t> randByte;
 };
