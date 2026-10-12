@@ -26,7 +26,7 @@ class Chip8 {
         uint32_t video[64 * 32]{};
 
         std::default_random_engine randGen;
-        std::uniform_int_distribution<uint8_t> randByte;
+        std::uniform_int_distribution<unsigned int> randByte;
 
         // Do nothing
         void OP_NULL();
@@ -127,7 +127,7 @@ class Chip8 {
         void OP_Fx29();
 
         // LD B, Vx
-        void OP_Fx29();
+        void OP_Fx33();
 
         // LD [I], Vx
         void OP_Fx55();
