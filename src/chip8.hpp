@@ -5,7 +5,7 @@ const unsigned int MEMORY_SIZE = 4096;
 const unsigned int REGISTER_COUNT = 16;
 const unsigned int STACK_LEVELS = 16;
 const unsigned int VIDEO_HEIGHT = 32;
-const unsigned int VIDEO_LENGTH = 64;
+const unsigned int VIDEO_WIDTH = 64;
 
 
 class Chip8 {
@@ -24,6 +24,7 @@ class Chip8 {
         uint8_t sp{};
         uint16_t opcode{};
         uint32_t video[64 * 32]{};
+        uint8_t keypad[16]{};
 
         std::default_random_engine randGen;
         std::uniform_int_distribution<unsigned int> randByte;

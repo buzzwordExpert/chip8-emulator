@@ -184,6 +184,226 @@ void Chip8::OP_8xy6() {
 	registers[0xF] = flag;
 }
 
+void Chip8::OP_8xyE() {
+	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+	uint8_t Vy = (opcode & 0x00F0u) >> 4u;
+
+	registers[Vx] = registers[Vy];
+	uint8_t flag = (registers[Vx] & 0x80u) >> 7u;
+	
+	registers[Vx] <<= 1;
+
+	registers[0xF] = flag;
+}
+
+void Chip8::OP_9xy0() {
+	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+	uint8_t Vy = (opcode & 0x00F0u) >> 4u;
+
+	if (registers[Vx] != registers[Vy]) {
+		pc += 2;
+	}
+}
+
+void Chip8::OP_Annn() {
+	uint16_t address = opcode & 0x0FFFu;
+
+	index = address;
+}
+
+void Chip8::OP_Bnnn() {
+	uint16_t address = opcode & 0x0FFFu;
+
+	pc = registers[0] + address;
+}
+
+void Chip8::OP_Cxkk() {
+	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+	uint8_t byte = (opcode & 0x00FFu);
+
+	registers[Vx] = static_cast<uint8_t>(randByte(randGen)) & byte;
+}
+
+void Chip8::OP_Dxyn() {
+	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+	uint8_t Vy = (opcode & 0x00F0u) >> 4u;
+	uint8_t height = opcode & 0x000Fu;
+
+	uint8_t xPos = registers[Vx] % VIDEO_WIDTH;
+	uint8_t yPos = registers[Vy] % VIDEO_HEIGHT;
+
+	registers[0xF] = 0;
+
+	for (unsigned int row = 0; row < height; ++row) {
+		uint8_t spriteByte = memory[index + row];
+
+		for (unsigned int col = 0; col < 8; ++col) {
+			uint8_t spritePixel = spriteByte & (0x80u >> col);
+			uint32_t* screenPixel = &video[(yPos + row) * VIDEO_WIDTH + (xPos + col)];
+
+			// Sprite pixel is one
+			if (spritePixel) {
+				
+				// Screen pixel also on - collision
+				if (*screenPixel == 0xFFFFFFFF) {
+					registers[0xF] = 1;
+ 				}
+
+				// XOR with the sprite level
+				*screenPixel ^= 0xFFFFFFFF;
+			}
+		}
+	}
+}
+
+void Chip8::OP_Ex9E() {
+	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+	uint8_t key = registers[Vx];
+
+	if (keypad[key]) {
+		pc += 2;
+	}
+}
+
+void Chip8::OP_ExA1() {
+	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+	uint8_t key = registers[Vx];
+
+	if (!keypad[key]) {
+		pc += 2;
+	}
+}
+
+void Chip8::OP_Fx07() {
+	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+	registers[Vx] = delayTimer;
+}
+
+void Chip8::OP_Fx0A() {
+	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+	if (keypad[0])
+	{
+		registers[Vx] = 0;
+	}
+	else if (keypad[1])
+	{
+		registers[Vx] = 1;
+	}
+	else if (keypad[2])
+	{
+		registers[Vx] = 2;
+	}
+	else if (keypad[3])
+	{
+		registers[Vx] = 3;
+	}
+	else if (keypad[4])
+	{
+		registers[Vx] = 4;
+	}
+	else if (keypad[5])
+	{
+		registers[Vx] = 5;
+	}
+	else if (keypad[6])
+	{
+		registers[Vx] = 6;
+	}
+	else if (keypad[7])
+	{
+		registers[Vx] = 7;
+	}
+	else if (keypad[8])
+	{
+		registers[Vx] = 8;
+	}
+	else if (keypad[9])
+	{
+		registers[Vx] = 9;
+	}
+	else if (keypad[10])
+	{
+		registers[Vx] = 10;
+	}
+	else if (keypad[11])
+	{
+		registers[Vx] = 11;
+	}
+	else if (keypad[12])
+	{
+		registers[Vx] = 12;
+	}
+	else if (keypad[13])
+	{
+		registers[Vx] = 13;
+	}
+	else if (keypad[14])
+	{
+		registers[Vx] = 14;
+	}
+	else if (keypad[15])
+	{
+		registers[Vx] = 15;
+	}
+	else
+	{
+		pc -= 2;
+	}
+}
+
+
+void Chip8::OP_Fx15() {
+	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+	delayTimer = registers[Vx];
+}
+
+void Chip8::OP_Fx18() {
+	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+	soundTimer = registers[Vx];
+}
+
+void Chip8::OP_Fx1E() {
+	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+	index += registers[Vx];
+}
+
+void Chip8::OP_Fx29() {
+	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+	uint8_t digit = registers[Vx];
+
+
+	// We know the font characters are located at 0x50, 
+	// and we know they’re five bytes each, so we can 
+	// get the address of the first byte of any character 
+	// by taking an offset from the start address.
+	index = FONTSET_START_ADDRESS + (5 * digit);
+}
+
+void Chip8::OP_Fx33() {
+	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+	uint8_t value = registers[Vx];
+
+	// One's place
+	memory[index + 2] = value % 10;
+	value /= 10;
+
+	// Ten's place
+	memory[index + 1] = value % 10;
+	value /= 10;
+
+	// Hundrend's plcae
+	memory[index] = value % 10;
+}
+
+void Chip8::OP_Fx55() {
+	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+	for (uint8_t i = 0; i <= Vx; ++i) {
+		registers[i] = memory[index + i];
+	}
+}
+
 
 
 
