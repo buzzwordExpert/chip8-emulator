@@ -29,24 +29,24 @@
 - [x] 8xy4 - ADD Vx, Vy
 - [x] 8xy5 - SUB Vx, Vy
 - [x] 8xy6 - SHR Vx
-- [ ] 8xy7 - SUBN Vx, Vy
-- [ ] 8xyE - SHL Vx
-- [ ] 9xy0 - SNE Vx, Vy
-- [ ] Annn - LD I, addr
-- [ ] Bnnn - JP V0, addr
-- [ ] Cxkk - RND Vx, byte
-- [ ] Dxyn - DRW Vx, Vy, nibble
-- [ ] Ex9E - SKP Vx
-- [ ] ExA1 - SKNP Vx
-- [ ] Fx07 - LD Vx, DT
-- [ ] Fx0A - LD Vx, K
-- [ ] Fx15 - LD DT, Vx
-- [ ] Fx18 - LD ST, Vx
-- [ ] Fx1E - ADD I, Vx
-- [ ] Fx29 - LD F, Vx
-- [ ] Fx33 - LD B, Vx
-- [ ] Fx55 - LD [I], Vx
-- [ ] Fx65 - LD Vx, [I]
+- [x] 8xy7 - SUBN Vx, Vy
+- [x] 8xyE - SHL Vx
+- [x] 9xy0 - SNE Vx, Vy
+- [x] Annn - LD I, addr
+- [x] Bnnn - JP V0, addr
+- [x] Cxkk - RND Vx, byte
+- [x] Dxyn - DRW Vx, Vy, nibble
+- [x] Ex9E - SKP Vx
+- [x] ExA1 - SKNP Vx
+- [x] Fx07 - LD Vx, DT
+- [x] Fx0A - LD Vx, K
+- [x] Fx15 - LD DT, Vx
+- [x] Fx18 - LD ST, Vx
+- [x] Fx1E - ADD I, Vx
+- [x] Fx29 - LD F, Vx
+- [x] Fx33 - LD B, Vx
+- [x] Fx55 - LD [I], Vx
+- [x] Fx65 - LD Vx, [I]
 
 ### CPU
 

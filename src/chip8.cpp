@@ -170,7 +170,7 @@ void Chip8::OP_8xy5() {
 	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
 	uint8_t Vy = (opcode & 0x00F0u) >> 4u;
 
-	uint8_t flag = (registers[Vx] >= registers[Vy]) ? 1 : 0;
+	uint8_t flag = (registers[Vx] > registers[Vy]) ? 1 : 0;
 	registers[Vx] -= registers[Vy];
 	registers[0xF] = flag;
 }
@@ -181,6 +181,15 @@ void Chip8::OP_8xy6() {
 
 	uint8_t flag = registers[Vy] & 0x1u;
 	registers[Vx] = registers[Vy] >> 1;
+	registers[0xF] = flag;
+}
+
+void Chip8::OP_8xy7() {
+	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+	uint8_t Vy = (opcode & 0x00F0u) >> 4u;
+
+	uint8_t flag = (registers[Vy] >= registers[Vx]) ? 1 : 0;
+	registers[Vx] = registers[Vy] - registers[Vx];
 	registers[0xF] = flag;
 }
 
@@ -237,7 +246,17 @@ void Chip8::OP_Dxyn() {
 	for (unsigned int row = 0; row < height; ++row) {
 		uint8_t spriteByte = memory[index + row];
 
+		// Sprites starting on screen are clipped at the bottom edge
+		if (yPos + row >= VIDEO_HEIGHT) {
+			break;
+		}
+
 		for (unsigned int col = 0; col < 8; ++col) {
+			// ...and at the right edge
+			if (xPos + col >= VIDEO_WIDTH) {
+				break;
+			}
+
 			uint8_t spritePixel = spriteByte & (0x80u >> col);
 			uint32_t* screenPixel = &video[(yPos + row) * VIDEO_WIDTH + (xPos + col)];
 
@@ -400,10 +419,17 @@ void Chip8::OP_Fx55() {
 	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
 
 	for (uint8_t i = 0; i <= Vx; ++i) {
-		registers[i] = memory[index + i];
+		memory[index + i] = registers[i];
 	}
 }
 
+void Chip8::OP_Fx65() {
+	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+	for (uint8_t i = 0; i <= Vx; i++) {
+		registers[i] = memory[index + i];
+	}
+}
 
 
 
