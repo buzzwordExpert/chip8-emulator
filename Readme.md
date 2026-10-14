@@ -50,9 +50,11 @@
 
 ### CPU
 
-- [ ] Opcode function pointer tables (dispatch on the opcode's nibbles)
-- [ ] Fetch / decode / execute cycle
-- [ ] Delay timer and sound timer decrement (60 Hz)
+- [x] Opcode function pointer tables (main table plus sub-tables for 0, 8, E and F) filled in the constructor
+- [ ] Sub-table dispatch functions (`Table0`, `Table8`, `TableE`, `TableF`) - declared but not defined yet
+- [x] Fetch (read the opcode at PC and advance PC)
+- [ ] Decode / execute (call the handler from the table inside `Cycle`)
+- [ ] Delay timer and sound timer decrement at 60 Hz (currently decremented once per `Cycle`)
 
 ### SDL3 platform layer
 

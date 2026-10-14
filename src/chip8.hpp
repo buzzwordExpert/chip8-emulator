@@ -6,12 +6,16 @@ const unsigned int REGISTER_COUNT = 16;
 const unsigned int STACK_LEVELS = 16;
 const unsigned int VIDEO_HEIGHT = 32;
 const unsigned int VIDEO_WIDTH = 64;
-
+const unsigned int KEY_COUNT = 16;
 
 class Chip8 {
     public:
         Chip8();
         void LoadROM(char const* filename);
+        void Cycle();
+
+        uint8_t keypad[KEY_COUNT]{};
+        uint32_t video[VIDEO_WIDTH * VIDEO_HEIGHT]{};
 
     private:
         uint8_t memory[MEMORY_SIZE]{};
@@ -23,8 +27,6 @@ class Chip8 {
         uint16_t stack[STACK_LEVELS]{};
         uint8_t sp{};
         uint16_t opcode{};
-        uint32_t video[64 * 32]{};
-        uint8_t keypad[16]{};
 
         std::default_random_engine randGen;
         std::uniform_int_distribution<unsigned int> randByte;
@@ -135,4 +137,16 @@ class Chip8 {
 
         // LD Vx, [I]
         void OP_Fx65();
+
+        void Table0();
+        void Table8();
+        void TableE();
+        void TableF();
+
+        typedef void (Chip8::*Chip8Func)();
+        Chip8Func table[0xF + 1];
+        Chip8Func table0[0xE + 1];
+        Chip8Func table8[0xE + 1];
+        Chip8Func tableE[0xE + 1];
+        Chip8Func tableF[0x65 + 1];
 };
