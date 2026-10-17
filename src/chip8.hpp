@@ -16,6 +16,9 @@ class Chip8 {
         void LoadROM(char const* filename);
         void Cycle();
 
+        // Count both timers down by one; must be called at 60 Hz
+        void UpdateTimers();
+
         uint8_t keypad[KEY_COUNT]{};
         uint32_t video[VIDEO_WIDTH * VIDEO_HEIGHT]{};
 
@@ -147,8 +150,8 @@ class Chip8 {
 
         typedef void (Chip8::*Chip8Func)();
         Chip8Func table[0xF + 1];
-        Chip8Func table0[0xE + 1];
-        Chip8Func table8[0xE + 1];
-        Chip8Func tableE[0xE + 1];
-        Chip8Func tableF[0x65 + 1];
+        Chip8Func table0[0xF + 1];
+        Chip8Func table8[0xF + 1];
+        Chip8Func tableE[0xF + 1];
+        Chip8Func tableF[0xFF + 1];
 };

@@ -60,7 +60,7 @@ Chip8::Chip8():randGen(std::chrono::system_clock::now().time_since_epoch().count
 	table[0xE] = &Chip8::TableE;
 	table[0xF] = &Chip8::TableF;
 
-	for (size_t i = 0; i <= 0xE; i++) {
+	for (size_t i = 0; i <= 0xF; i++) {
 		table0[i] = &Chip8::OP_NULL;
 		table8[i] = &Chip8::OP_NULL;
 		tableE[i] = &Chip8::OP_NULL;
@@ -82,7 +82,7 @@ Chip8::Chip8():randGen(std::chrono::system_clock::now().time_since_epoch().count
 	tableE[0x1] = &Chip8::OP_ExA1;
 	tableE[0xE] = &Chip8::OP_Ex9E;
 
-	for (size_t i = 0; i <= 0x65; i++) {
+	for (size_t i = 0; i <= 0xFF; i++) {
 		tableF[i] = &Chip8::OP_NULL;
 	}
 
@@ -126,6 +126,9 @@ void Chip8::Cycle() {
 
 	// Decode and execute
 	((*this).*(table[(opcode & 0xF000u) >> 12u]))();
+}
+
+void Chip8::UpdateTimers() {
 
 	// decrement delayTimer if set
 	if (delayTimer > 0) {
@@ -137,6 +140,27 @@ void Chip8::Cycle() {
 		--soundTimer;
 	}
 }
+
+void Chip8::Table0()
+{
+	((*this).*(table0[opcode & 0x000Fu]))();
+}
+
+void Chip8::Table8()
+{
+	((*this).*(table8[opcode & 0x000Fu]))();
+}
+
+void Chip8::TableE()
+{
+	((*this).*(tableE[opcode & 0x000Fu]))();
+}
+
+void Chip8::TableF()
+{
+	((*this).*(tableF[opcode & 0x00FFu]))();
+}
+
 
 void Chip8::OP_NULL() {}
 

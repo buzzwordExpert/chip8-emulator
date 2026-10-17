@@ -51,10 +51,10 @@
 ### CPU
 
 - [x] Opcode function pointer tables (main table plus sub-tables for 0, 8, E and F) filled in the constructor
-- [ ] Sub-table dispatch functions (`Table0`, `Table8`, `TableE`, `TableF`) - declared but not defined yet
+- [x] Sub-table dispatch functions (`Table0`, `Table8`, `TableE`, `TableF`)
 - [x] Fetch (read the opcode at PC and advance PC)
-- [ ] Decode / execute (call the handler from the table inside `Cycle`)
-- [ ] Delay timer and sound timer decrement at 60 Hz (currently decremented once per `Cycle`)
+- [x] Decode / execute (call the handler from the table inside `Cycle`)
+- [x] Delay timer and sound timer decrement at 60 Hz (`UpdateTimers`, called from the main loop independently of the cycle delay)
 
 ### SDL3 platform layer
 
@@ -62,8 +62,8 @@
 - [x] Draw the 64x32 video buffer to the screen (with scaling)
 - [x] Keyboard input mapping for the 16-key hex keypad
 - [ ] Sound (beep while the sound timer is non-zero)
-- [ ] Main loop with cycle delay (configurable emulation speed)
-- [ ] Command line arguments (ROM path, scale, cycle delay)
+- [x] Main loop with cycle delay (configurable emulation speed)
+- [x] Command line arguments (scale, cycle delay, ROM path)
 
 ### Finishing up
 
