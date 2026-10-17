@@ -58,9 +58,9 @@
 
 ### SDL3 platform layer
 
-- [ ] Create window, renderer and texture
-- [ ] Draw the 64x32 video buffer to the screen (with scaling)
-- [ ] Keyboard input mapping for the 16-key hex keypad
+- [x] Create window, renderer and texture
+- [x] Draw the 64x32 video buffer to the screen (with scaling)
+- [x] Keyboard input mapping for the 16-key hex keypad
 - [ ] Sound (beep while the sound timer is non-zero)
 - [ ] Main loop with cycle delay (configurable emulation speed)
 - [ ] Command line arguments (ROM path, scale, cycle delay)
