@@ -6,3 +6,6 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 /chip8
+
+# Timendus CHIP-8 test suite (GPL-3.0, downloaded separately - see test/README.md)
+test/

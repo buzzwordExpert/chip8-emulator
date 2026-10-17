@@ -37,6 +37,10 @@ class Chip8 {
         uint8_t sp{};
         uint16_t opcode{};
 
+        // Key that Fx0A saw pressed and is waiting to be released (NO_KEY when none)
+        static constexpr uint8_t NO_KEY = 0xFF;
+        uint8_t pressedKey{NO_KEY};
+
         std::default_random_engine randGen;
         std::uniform_int_distribution<unsigned int> randByte;
 

@@ -425,74 +425,32 @@ void Chip8::OP_Fx07() {
 void Chip8::OP_Fx0A() {
 	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
 
-	if (keypad[0])
-	{
-		registers[Vx] = 0;
-	}
-	else if (keypad[1])
-	{
-		registers[Vx] = 1;
-	}
-	else if (keypad[2])
-	{
-		registers[Vx] = 2;
-	}
-	else if (keypad[3])
-	{
-		registers[Vx] = 3;
-	}
-	else if (keypad[4])
-	{
-		registers[Vx] = 4;
-	}
-	else if (keypad[5])
-	{
-		registers[Vx] = 5;
-	}
-	else if (keypad[6])
-	{
-		registers[Vx] = 6;
-	}
-	else if (keypad[7])
-	{
-		registers[Vx] = 7;
-	}
-	else if (keypad[8])
-	{
-		registers[Vx] = 8;
-	}
-	else if (keypad[9])
-	{
-		registers[Vx] = 9;
-	}
-	else if (keypad[10])
-	{
-		registers[Vx] = 10;
-	}
-	else if (keypad[11])
-	{
-		registers[Vx] = 11;
-	}
-	else if (keypad[12])
-	{
-		registers[Vx] = 12;
-	}
-	else if (keypad[13])
-	{
-		registers[Vx] = 13;
-	}
-	else if (keypad[14])
-	{
-		registers[Vx] = 14;
-	}
-	else if (keypad[15])
-	{
-		registers[Vx] = 15;
-	}
-	else
-	{
+	// The original CHIP-8 waits for a key to be pressed AND released before continuing.
+	// Continuing on the press alone lets one long key press satisfy several Fx0A
+	// instructions in a row. Rewinding pc repeats this instruction every cycle,
+	// which halts the program while the timers keep counting down.
+
+	// Step 2: a key was pressed earlier, wait until it is released
+	if (pressedKey != NO_KEY) {
+		if (!keypad[pressedKey]) {
+			registers[Vx] = pressedKey;
+			pressedKey = NO_KEY;
+			return;
+		}
+
 		pc -= 2;
+		return;
 	}
+
+	// Step 1: wait for any key to be pressed, and remember which one
+	for (uint8_t key = 0; key < KEY_COUNT; ++key) {
+		if (keypad[key]) {
+			pressedKey = key;
+			break;
+		}
+	}
+
+	pc -= 2;
 }
 
 
