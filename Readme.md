@@ -3,11 +3,14 @@
 A CHIP-8 emulator in C++
 
 ![Space Invaders](docs/screenshots/space_invaders.png "Space Invaders")
+Space Invaders
+
 ![Pong](docs/screenshots/Pong.png "Pong")
+Pong
 
 CHIP-8 is an interpreted programming language developed by Joseph Weisbecker in the mid 70s and was initially used on the COSMAC VIP and Telmac 1800 8-bit microcomputers to make game programming easier. CHIP-8 programs are run using a CHIP-8 virtual machine.
 
-This is a complete implementation of the classic CHIP-8 virtual machine.
+This is a complete implementation of the CHIP-8 virtual machine.
 
 ## Compiling and Running
 
