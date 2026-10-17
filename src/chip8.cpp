@@ -125,7 +125,7 @@ void Chip8::Cycle() {
 	pc += 2;
 
 	// Decode and execute
-
+	((*this).*(table[(opcode & 0xF000u) >> 12u]))();
 
 	// decrement delayTimer if set
 	if (delayTimer > 0) {
