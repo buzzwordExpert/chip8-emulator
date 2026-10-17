@@ -9,3 +9,6 @@ Makefile
 
 # Timendus CHIP-8 test suite (GPL-3.0, downloaded separately - see test/README.md)
 test/
+
+# Game ROMs (downloaded separately)
+games/

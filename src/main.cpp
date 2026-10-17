@@ -67,6 +67,15 @@ int main(int argc, char** argv) {
         if (currentTime - lastTimerTime >= timerInterval) {
             chip8.UpdateTimers();
             lastTimerTime += timerInterval;
+
+            // Problem: the screen used to be redrawn after every instruction. CHIP-8 moves a
+            // sprite by drawing it again at the old position (which erases it, since drawing
+            // XORs) and then at the new one, so the moment in between, with the sprite gone,
+            // was shown hundreds of times a second: that is the flicker. Games pace themselves
+            // with the 60 Hz delay timer and finish erase + redraw within one tick, so showing
+            // the screen once per tick, like the original display refresh, only shows
+            // finished frames. It also does ~15x less drawing work.
+            platform.Update(chip8.video, videoPitch);
         }
 
         // Beep for as long as the sound timer is non-zero
@@ -75,7 +84,6 @@ int main(int argc, char** argv) {
         if (dt > cycleDelay) {
             lastCycleTime = currentTime;
             chip8.Cycle();
-            platform.Update(chip8.video, videoPitch);
         }
 
         // Problem: this loop never waits, it just re-checks the clock as fast as the CPU
