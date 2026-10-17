@@ -2,6 +2,37 @@
 
 - currently in progress
 
+### Building
+
+Requires a C++17 compiler, CMake 3.16+ and SDL3.
+
+```
+cmake -B build
+cmake --build build
+```
+
+### Running
+
+```
+./build/chip8 <Scale> <Delay> <ROM>
+```
+
+- `Scale` - window size multiplier (e.g. `10` gives a 640x320 window)
+- `Delay` - milliseconds between CPU cycles; lower is faster (e.g. `3`)
+- `ROM` - path to a CHIP-8 ROM file
+
+Example: `./build/chip8 10 3 roms/IBM.ch8`
+
+The 16-key hex keypad is mapped to the left side of the keyboard (Esc quits):
+
+```
+Keyboard     CHIP-8
+1 2 3 4      1 2 3 C
+Q W E R      4 5 6 D
+A S D F      7 8 9 E
+Z X C V      A 0 B F
+```
+
 ### Core
 
 - [x] Project setup and README
@@ -61,13 +92,13 @@
 - [x] Create window, renderer and texture
 - [x] Draw the 64x32 video buffer to the screen (with scaling)
 - [x] Keyboard input mapping for the 16-key hex keypad
-- [ ] Sound (beep while the sound timer is non-zero)
+- [x] Sound (beep while the sound timer is non-zero)
 - [x] Main loop with cycle delay (configurable emulation speed)
 - [x] Command line arguments (scale, cycle delay, ROM path)
 
 ### Finishing up
 
-- [ ] Build system (Makefile / CMake)
+- [x] Build system (CMake)
 - [ ] Test with test ROMs (e.g. IBM logo, Corax+ / BestCoder test suite)
 - [ ] Run real games (Pong, Tetris, Space Invaders, ...)
 - [ ] Usage instructions and screenshots in the README

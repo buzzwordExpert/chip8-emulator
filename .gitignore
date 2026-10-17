@@ -1,0 +1,8 @@
+build/
+
+# Output of an in-source build (running cmake in the project root)
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+/chip8
