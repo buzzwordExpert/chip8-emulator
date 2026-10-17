@@ -13,11 +13,15 @@ const unsigned int KEY_COUNT = 16;
 class Chip8 {
     public:
         Chip8();
-        void LoadROM(char const* filename);
+        // Returns false if the file can't be read or doesn't fit in memory
+        bool LoadROM(char const* filename);
         void Cycle();
 
         // Count both timers down by one; must be called at 60 Hz
         void UpdateTimers();
+
+        // True while the sound timer is running
+        bool SoundActive() const;
 
         uint8_t keypad[KEY_COUNT]{};
         uint32_t video[VIDEO_WIDTH * VIDEO_HEIGHT]{};

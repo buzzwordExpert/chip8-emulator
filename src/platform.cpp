@@ -1,6 +1,15 @@
 #include "platform.hpp"
+#include <algorithm>
+#include <iostream>
 #include <stdexcept>
 #include <string>
+
+namespace {
+    const int SAMPLE_RATE = 44100;
+    const float BEEP_FREQUENCY = 440.0f;   // Hz
+    const float BEEP_VOLUME = 0.15f;       // 0..1, a square wave is loud so keep it low
+    const float FADE_SECONDS = 0.005f;     // ramp volume over 5 ms to avoid clicks
+}
 
 Platform::Platform(char const* title, int windowWidth, int windowHeight, int textureWidth, int textureHeight) {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
@@ -24,6 +33,27 @@ Platform::Platform(char const* title, int windowWidth, int windowHeight, int tex
 
     // Keep the pixels sharp when scaling the 64x32 buffer up to the window
     SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
+
+    // Sound is optional: if there is no audio device, carry on without a beep
+    // instead of refusing to start the emulator
+    if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) {
+        std::cerr << "Warning: audio unavailable, running without sound (" << SDL_GetError() << ")\n";
+        return;
+    }
+
+    SDL_AudioSpec spec{};
+    spec.format = SDL_AUDIO_S16;
+    spec.channels = 1;
+    spec.freq = SAMPLE_RATE;
+
+    audioStream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, AudioCallback, this);
+    if (!audioStream) {
+        std::cerr << "Warning: could not open audio device, running without sound (" << SDL_GetError() << ")\n";
+        return;
+    }
+
+    // Audio devices start paused. The callback outputs silence until SetSound(true).
+    SDL_ResumeAudioStreamDevice(audioStream);
 }
 
 Platform::~Platform() {
@@ -31,6 +61,10 @@ Platform::~Platform() {
 }
 
 void Platform::Cleanup() {
+    if (audioStream) {
+        SDL_DestroyAudioStream(audioStream);
+        audioStream = nullptr;
+    }
     if (texture) {
         SDL_DestroyTexture(texture);
         texture = nullptr;
@@ -57,6 +91,48 @@ void Platform::Update(void const* buffer, int pitch) {
     SDL_RenderClear(renderer);
     SDL_RenderTexture(renderer, texture, nullptr, nullptr);
     SDL_RenderPresent(renderer);
+}
+
+void Platform::SetSound(bool on) {
+    beeping = on;
+}
+
+void SDLCALL Platform::AudioCallback(void* userdata, SDL_AudioStream* stream, int additionalAmount, int /*totalAmount*/) {
+    Platform* self = static_cast<Platform*>(userdata);
+
+    float const target = self->beeping ? 1.0f : 0.0f;
+    float const fadeStep = 1.0f / (FADE_SECONDS * SAMPLE_RATE);
+    float const phaseStep = BEEP_FREQUENCY / SAMPLE_RATE;
+
+    // additionalAmount is in bytes; each sample is a 16 bit integer
+    int samplesLeft = additionalAmount / static_cast<int>(sizeof(int16_t));
+
+    // Generate in small chunks so the buffer can live on the stack
+    int16_t buffer[512];
+
+    while (samplesLeft > 0) {
+        int count = std::min(samplesLeft, 512);
+
+        for (int i = 0; i < count; ++i) {
+            // Move the volume toward the target (on or off) a little each sample
+            if (self->gain < target) {
+                self->gain = std::min(self->gain + fadeStep, target);
+            } else if (self->gain > target) {
+                self->gain = std::max(self->gain - fadeStep, target);
+            }
+
+            float square = (self->phase < 0.5f) ? 1.0f : -1.0f;
+            self->phase += phaseStep;
+            if (self->phase >= 1.0f) {
+                self->phase -= 1.0f;
+            }
+
+            buffer[i] = static_cast<int16_t>(square * self->gain * BEEP_VOLUME * 32767.0f);
+        }
+
+        SDL_PutAudioStreamData(stream, buffer, count * static_cast<int>(sizeof(int16_t)));
+        samplesLeft -= count;
+    }
 }
 
 bool Platform::ProcessInput(uint8_t* keys) {

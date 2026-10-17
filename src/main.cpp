@@ -34,10 +34,15 @@ int main(int argc, char** argv) {
 
     char const* romFilename = argv[3];
 
-    Platform platform("CHIP-8 Emulator", VIDEO_WIDTH * videoScale, VIDEO_HEIGHT * videoScale, VIDEO_WIDTH, VIDEO_HEIGHT);
-
+    // Load the ROM before opening the window, so a bad path doesn't flash a window first
     Chip8 chip8;
-    chip8.LoadROM(romFilename);
+    if (!chip8.LoadROM(romFilename)) {
+        std::cerr << "Error: could not load ROM '" << romFilename
+                  << "' (missing, unreadable, empty, or larger than 3584 bytes)\n";
+        return EXIT_FAILURE;
+    }
+
+    Platform platform("CHIP-8 Emulator", VIDEO_WIDTH * videoScale, VIDEO_HEIGHT * videoScale, VIDEO_WIDTH, VIDEO_HEIGHT);
 
     int videoPitch = sizeof(chip8.video[0]) * VIDEO_WIDTH;
 
@@ -63,6 +68,9 @@ int main(int argc, char** argv) {
             chip8.UpdateTimers();
             lastTimerTime += timerInterval;
         }
+
+        // Beep for as long as the sound timer is non-zero
+        platform.SetSound(chip8.SoundActive());
 
         if (dt > cycleDelay) {
             lastCycleTime = currentTime;

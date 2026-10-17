@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL3/SDL.h>
+#include <atomic>
 #include <cstdint>
 
 class Platform {
@@ -16,10 +17,26 @@ class Platform {
         // Returns true when the emulator should quit (window closed or Escape).
         bool ProcessInput(uint8_t* keys);
 
+        // Turn the beep on or off (call with true while the sound timer is running).
+        // If no audio device could be opened this does nothing.
+        void SetSound(bool on);
+
     private:
         SDL_Window* window{};
         SDL_Renderer* renderer{};
         SDL_Texture* texture{};
+        SDL_AudioStream* audioStream{};
+
+        // Written by the main thread, read by SDL's audio thread
+        std::atomic<bool> beeping{false};
+
+        // Only touched by the audio thread: position in the square wave and the
+        // current volume, which ramps up and down to avoid clicks
+        float phase{};
+        float gain{};
+
+        // Called by SDL whenever the audio device needs more samples
+        static void SDLCALL AudioCallback(void* userdata, SDL_AudioStream* stream, int additionalAmount, int totalAmount);
 
         void Cleanup();
 

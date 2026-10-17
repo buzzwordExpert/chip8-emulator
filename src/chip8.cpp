@@ -97,35 +97,44 @@ Chip8::Chip8():randGen(std::chrono::system_clock::now().time_since_epoch().count
 	tableF[0x65] = &Chip8::OP_Fx65;
 }
 
-void Chip8::LoadROM (char const* filename) {
+bool Chip8::LoadROM (char const* filename) {
 
     std::ifstream file(filename, std::ios::binary | std::ios::ate);
 
-    if (file.is_open()) {
-        std::streampos size = file.tellg();
-        char* buffer = new char[size];
-        file.seekg(0, std::ios::beg);
-        file.read(buffer, size);
-        file.close();
-
-        for (long i = 0; i < size; ++i) {
-            memory[START_ADDRESS + i] = buffer[i];
-        }
-
-        delete[] buffer;
+    // Report a missing or unreadable file instead of silently running an empty machine
+    if (!file.is_open()) {
+        return false;
     }
+
+    std::streamoff size = file.tellg();
+
+    // A ROM larger than the space after 0x200 would be written past the end of memory
+    if (size <= 0 || size > static_cast<std::streamoff>(MEMORY_SIZE - START_ADDRESS)) {
+        return false;
+    }
+
+    file.seekg(0, std::ios::beg);
+    file.read(reinterpret_cast<char*>(&memory[START_ADDRESS]), size);
+
+    return static_cast<bool>(file);
 }
 
 void Chip8::Cycle() {
 
 	// Fetch
-	opcode = (memory[pc] << 8u | memory[pc + 1]);
+	// pc can point past the end of memory so wrap the address around the
+	// 4K address space instead of reading out of bounds
+	opcode = (memory[pc % MEMORY_SIZE] << 8u | memory[(pc + 1) % MEMORY_SIZE]);
 
 	// increment pc for fetch operation
 	pc += 2;
 
 	// Decode and execute
 	((*this).*(table[(opcode & 0xF000u) >> 12u]))();
+}
+
+bool Chip8::SoundActive() const {
+	return soundTimer > 0;
 }
 
 void Chip8::UpdateTimers() {
@@ -169,6 +178,11 @@ void Chip8::OP_00E0() {
 }
 
 void Chip8::OP_00EE() {
+    // Returning with an empty stack would wrap sp to 255 and read past the stack
+    if (sp == 0) {
+        return;
+    }
+
     --sp;
     pc = stack[sp];
 }
@@ -180,6 +194,11 @@ void Chip8::OP_1nnn() {
 
 void Chip8::OP_2nnn() {
 	uint16_t address = opcode & 0x0FFFu;
+
+	// A 17th nested call would write past the end of the stack
+	if (sp >= STACK_LEVELS) {
+		return;
+	}
 
 	stack[sp] = pc;
 	++sp;
@@ -270,7 +289,8 @@ void Chip8::OP_8xy5() {
 	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
 	uint8_t Vy = (opcode & 0x00F0u) >> 4u;
 
-	uint8_t flag = (registers[Vx] > registers[Vy]) ? 1 : 0;
+	// VF is 1 when there is no borrow, which includes Vx == Vy (same rule as 8xy7)
+	uint8_t flag = (registers[Vx] >= registers[Vy]) ? 1 : 0;
 	registers[Vx] -= registers[Vy];
 	registers[0xF] = flag;
 }
@@ -344,7 +364,7 @@ void Chip8::OP_Dxyn() {
 	registers[0xF] = 0;
 
 	for (unsigned int row = 0; row < height; ++row) {
-		uint8_t spriteByte = memory[index + row];
+		uint8_t spriteByte = memory[(index + row) % MEMORY_SIZE];
 
 		// Sprites starting on screen are clipped at the bottom edge
 		if (yPos + row >= VIDEO_HEIGHT) {
@@ -377,7 +397,9 @@ void Chip8::OP_Dxyn() {
 
 void Chip8::OP_Ex9E() {
 	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
-	uint8_t key = registers[Vx];
+
+	// Vx can hold any value up to 255, but there are only 16 keys
+	uint8_t key = registers[Vx] & 0xFu;
 
 	if (keypad[key]) {
 		pc += 2;
@@ -386,7 +408,9 @@ void Chip8::OP_Ex9E() {
 
 void Chip8::OP_ExA1() {
 	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
-	uint8_t key = registers[Vx];
+
+	// Vx can hold any value up to 255, but there are only 16 keys
+	uint8_t key = registers[Vx] & 0xFu;
 
 	if (!keypad[key]) {
 		pc += 2;
@@ -489,7 +513,8 @@ void Chip8::OP_Fx1E() {
 
 void Chip8::OP_Fx29() {
 	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
-	uint8_t digit = registers[Vx];
+	// Only the low nibble selects a font character (0-F)
+	uint8_t digit = registers[Vx] & 0xFu;
 
 
 	// We know the font characters are located at 0x50, 
@@ -504,22 +529,23 @@ void Chip8::OP_Fx33() {
 	uint8_t value = registers[Vx];
 
 	// One's place
-	memory[index + 2] = value % 10;
+	memory[(index + 2) % MEMORY_SIZE] = value % 10;
 	value /= 10;
 
 	// Ten's place
-	memory[index + 1] = value % 10;
+	memory[(index + 1) % MEMORY_SIZE] = value % 10;
 	value /= 10;
 
 	// Hundrend's plcae
-	memory[index] = value % 10;
+	memory[index % MEMORY_SIZE] = value % 10;
 }
 
 void Chip8::OP_Fx55() {
 	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
 
+	// index can be anywhere up to 0xFFFF (Fx1E keeps adding to it), so wrap it
 	for (uint8_t i = 0; i <= Vx; ++i) {
-		memory[index + i] = registers[i];
+		memory[(index + i) % MEMORY_SIZE] = registers[i];
 	}
 }
 
@@ -527,7 +553,7 @@ void Chip8::OP_Fx65() {
 	uint8_t Vx = (opcode & 0x0F00u) >> 8u;
 
 	for (uint8_t i = 0; i <= Vx; i++) {
-		registers[i] = memory[index + i];
+		registers[i] = memory[(index + i) % MEMORY_SIZE];
 	}
 }
 
